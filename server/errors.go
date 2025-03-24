@@ -7,6 +7,7 @@ var (
 	ErrUnknownFunction      = errors.New("unknown function")
 	ErrDeviceNotFound       = errors.New("device not found")
 	ErrInvalidAddress       = errors.New("invalid address")
+	ErrInvalidCount         = errors.New("invalid count")
 	ErrMsgServerFail        = "message server fail"
 	ErrMsgServerNotStarted  = "mpdbus message server not started"
 	ErrMsgServerFailConnect = "server fail connect"

@@ -50,6 +50,18 @@ func handleRequest(data []byte) ([]byte, error) {
 	default:
 		return nil, ErrUnknownFunction
 	}
+	if err == ErrInvalidAddress || err == ErrInvalidCount {
+		fmt.Println(err)
+		response := make([]byte, 9)
+		copy(response[0:2], transactionID) // Transaction ID
+		copy(response[2:4], protocolID)    // Protocol ID
+		response[4] = 0x00
+		response[5] = 0x03 // Length (Unit ID + Function Code + Exception Code)
+		response[6] = unitID
+		response[7] = functionCode //  Function Code
+		response[8] = 0x03         // For example Exception Code
+		return response, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +73,15 @@ func handleRequest(data []byte) ([]byte, error) {
 	response = append(response, unitID)
 	response = append(response, functionCode)
 	binary.BigEndian.PutUint16(lengthField, byteCount)
-	response = append(response, lengthField...)
+	response = append(response, lengthField[1])
 	response = append(response, responseData...)
 	return response, nil
 }
 
 func extractRegisters(registers []utils.Register, startAddress, count uint16) ([]byte, error) {
+	if count > 250 {
+		return nil, ErrInvalidCount
+	}
 	if int(startAddress)+int(count) > len(registers) {
 		return nil, ErrInvalidAddress
 	}
@@ -79,6 +94,9 @@ func extractRegisters(registers []utils.Register, startAddress, count uint16) ([
 }
 
 func extractDoubleRegisters(registers []utils.DoubleRegister, startAddress, count uint16) ([]byte, error) {
+	if count > 250 {
+		return nil, ErrInvalidCount
+	}
 	if int(startAddress)+int(count) > len(registers) {
 		return nil, ErrInvalidAddress
 	}
